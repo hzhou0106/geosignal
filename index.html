@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GeoSignal</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fafaf8;
+  --bg2:#f3f2ee;
+  --bg3:#eceae4;
+  --line:#e0ddd6;
+  --line2:#ccc9c0;
+  --text:#1a1916;
+  --text2:#6b6860;
+  --text3:#a8a59c;
+  --red:#c94040;--red-bg:#fdf1f1;--red-mid:#e86060;
+  --amber:#b06a1a;--amber-bg:#fdf5ec;--amber-mid:#d4903a;
+  --blue:#1f5c99;--blue-bg:#f0f5fb;--blue-mid:#4a8ec4;
+  --green:#2d7a3a;--green-bg:#f1f8f2;--green-mid:#5aaa6a;
+  --serif:'Libre Baskerville',serif;
+  --sans:'DM Sans',sans-serif;
+  --mono:'DM Mono',monospace;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#141410;--bg2:#1c1c18;--bg3:#242420;
+    --line:#2e2e28;--line2:#3a3a34;
+    --text:#f0ede4;--text2:#8a8780;--text3:#55534e;
+    --red:#e06060;--red-bg:#2a1818;--red-mid:#c94040;
+    --amber:#d4903a;--amber-bg:#281e10;--amber-mid:#b06a1a;
+    --blue:#6aaae0;--blue-bg:#101e2c;--blue-mid:#1f5c99;
+    --green:#6aaa70;--green-bg:#101e14;--green-mid:#2d7a3a;
+  }
+}
+html{font-size:15px}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ── Setup ── */
+.setup{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
+.setup-box{width:100%;max-width:420px}
+.s-wordmark{font-family:var(--serif);font-size:28px;color:var(--text);margin-bottom:6px;letter-spacing:-0.01em}
+.s-sub{font-size:13px;color:var(--text3);margin-bottom:32px;line-height:1.6}
+.s-field{margin-bottom:18px}
+.s-label{display:block;font-size:11px;font-weight:500;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;font-family:var(--mono);margin-bottom:7px}
+.s-input{width:100%;padding:10px 14px;background:var(--bg2);border:1px solid var(--line2);border-radius:7px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;transition:border-color .15s}
+.s-input:focus{border-color:var(--text3)}
+.s-input::placeholder{color:var(--text3)}
+.s-btn{width:100%;padding:12px;background:var(--text);border:none;border-radius:7px;color:var(--bg);font-size:14px;font-weight:500;font-family:var(--sans);cursor:pointer;transition:opacity .15s;margin-top:4px}
+.s-btn:hover{opacity:.85}
+.s-note{font-size:11px;color:var(--text3);margin-top:14px;text-align:center;line-height:1.7}
+.s-note a{color:var(--text2);text-decoration:none;border-bottom:1px solid var(--line2)}
+.s-err{font-size:12px;color:var(--red);margin-bottom:14px;padding:10px 14px;background:var(--red-bg);border-radius:6px;display:none}
+.s-err.on{display:block}
+
+/* ── App shell ── */
+.app{max-width:680px;margin:0 auto;padding:40px 24px 60px}
+
+/* ── Top bar ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px}
+.wordmark{font-family:var(--serif);font-size:20px;color:var(--text);letter-spacing:-0.01em}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.updated{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.refresh-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;background:transparent;border:1px solid var(--line2);border-radius:6px;color:var(--text2);font-size:12px;font-family:var(--sans);cursor:pointer;transition:border-color .15s,color .15s}
+.refresh-btn:hover{border-color:var(--line2);color:var(--text)}
+.refresh-btn:disabled{opacity:.4;cursor:not-allowed}
+.refresh-btn.spin .ri{animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ri{display:inline-block;font-style:normal}
+
+/* ── Score block ── */
+.score-block{display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:24px;border-bottom:1px solid var(--line);margin-bottom:24px}
+.score-left{}
+.score-num{font-family:var(--serif);font-size:72px;line-height:1;color:var(--text);letter-spacing:-0.03em;transition:color .5s}
+.score-denom{font-size:16px;color:var(--text3);font-family:var(--mono);margin-left:2px}
+.score-label{font-size:13px;color:var(--text2);margin-top:6px}
+.score-context{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:5px}
+.score-right{text-align:right;padding-bottom:4px}
+.verdict-pill{display:inline-block;padding:6px 16px;border-radius:99px;font-size:13px;font-weight:500;letter-spacing:0.01em}
+.pill-hold{background:var(--green-bg);color:var(--green)}
+.pill-watch{background:var(--amber-bg);color:var(--amber)}
+.pill-action{background:var(--red-bg);color:var(--red)}
+.verdict-sub{font-size:12px;color:var(--text3);margin-top:8px;max-width:200px;line-height:1.5;font-style:italic;font-family:var(--sans)}
+
+/* ── Event tiles ── */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:24px}
+.tile{background:var(--bg);padding:16px;cursor:pointer;transition:background .12s;position:relative}
+.tile:hover{background:var(--bg2)}
+.tile.active{background:var(--bg2)}
+.tile-n{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:10px}
+.tile-hed{font-size:12px;color:var(--text);line-height:1.45;margin-bottom:12px;min-height:42px}
+.tile-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;font-family:var(--mono)}
+.tile-dot{width:5px;height:5px;border-radius:50%}
+.tag-high{color:var(--red)} .tag-high .tile-dot{background:var(--red)}
+.tag-watch{color:var(--amber)} .tag-watch .tile-dot{background:var(--amber)}
+.tag-low{color:var(--blue)} .tag-low .tile-dot{background:var(--blue)}
+.tile-region{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:6px}
+
+/* ── Detail drawer ── */
+.drawer{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:24px;display:none;animation:slideDown .18s ease}
+.drawer.open{display:block}
+@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.drawer-header{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--bg2)}
+.drawer-title{font-family:var(--serif);font-size:15px;line-height:1.4;color:var(--text)}
+.drawer-close{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;line-height:1;padding:0;flex-shrink:0;transition:color .12s}
+.drawer-close:hover{color:var(--text)}
+.drawer-body{display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--line)}
+.drawer-col{background:var(--bg);padding:16px 18px}
+.drawer-col:first-child{border-right:none}
+.dc-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:7px}
+.dc-val{font-size:13px;color:var(--text2);line-height:1.6}
+.drawer-calm{padding:14px 18px;background:var(--bg);border-top:1px solid var(--line)}
+.calm-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px}
+.calm-text{font-size:13px;color:var(--text);line-height:1.65;font-style:italic;font-family:var(--sans)}
+.drawer-tickers{padding:12px 18px;border-top:1px solid var(--line);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dt-label{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.dt-chip{padding:3px 9px;border-radius:99px;font-family:var(--mono);font-size:11px;border:1px solid}
+.dt-chip.direct{background:var(--red-bg);border-color:rgba(201,64,64,.2);color:var(--red)}
+.dt-chip.watch{background:var(--amber-bg);border-color:rgba(176,106,26,.2);color:var(--amber)}
+.dt-none{font-size:12px;color:var(--green);font-family:var(--mono)}
+
+/* ── Holdings ── */
+.holdings-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:32px}
+.h-chip{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:99px;border:1px solid var(--line2);font-size:12px;cursor:pointer;transition:border-color .12s,background .12s;background:var(--bg)}
+.h-chip:hover{border-color:var(--line2);background:var(--bg2)}
+.h-chip.high{border-color:rgba(201,64,64,.3);background:var(--red-bg)}
+.h-chip.medium{border-color:rgba(176,106,26,.3);background:var(--amber-bg)}
+.hc-dot{width:5px;height:5px;border-radius:50%;background:var(--text3)}
+.h-chip.high .hc-dot{background:var(--red)}
+.h-chip.medium .hc-dot{background:var(--amber)}
+.h-chip.low .hc-dot{background:var(--green)}
+.hc-ticker{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text)}
+.hc-name{font-size:11px;color:var(--text3)}
+.hc-badge{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.04em;padding:1px 5px;border-radius:3px}
+.h-chip.high .hc-badge{color:var(--red)}
+.h-chip.medium .hc-badge{color:var(--amber)}
+.h-chip.low .hc-badge{color:var(--green)}
+
+/* ── States ── */
+.state-wrap{padding:60px 0;text-align:center}
+.st-icon{font-family:var(--serif);font-size:32px;color:var(--text3);margin-bottom:16px}
+.st-title{font-size:15px;color:var(--text2);margin-bottom:6px}
+.st-desc{font-size:13px;color:var(--text3);line-height:1.6;max-width:280px;margin:0 auto}
+.loading-wrap{padding:60px 0;display:flex;flex-direction:column;align-items:center;gap:20px}
+.bars{display:flex;align-items:flex-end;gap:3px;height:24px}
+.bar{width:3px;border-radius:2px;background:var(--text3);animation:barb .9s ease-in-out infinite}
+.bar:nth-child(1){animation-delay:0s}.bar:nth-child(2){animation-delay:.1s}.bar:nth-child(3){animation-delay:.2s}.bar:nth-child(4){animation-delay:.3s}.bar:nth-child(5){animation-delay:.4s}
+@keyframes barb{0%,100%{height:5px}50%{height:24px}}
+.l-text{font-family:var(--mono);font-size:12px;color:var(--text3)}
+.l-step{font-size:13px;color:var(--text2)}
+
+/* ── Footer note ── */
+.foot-note{font-size:11px;color:var(--text3);text-align:center;border-top:1px solid var(--line);padding-top:20px;font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<!-- Setup -->
+<div class="setup" id="setup">
+  <div class="setup-box">
+    <div class="s-wordmark">GeoSignal</div>
+    <div class="s-sub">Geopolitical scorecard for the personal investor.<br>Live signal via Claude + web search.</div>
+    <div class="s-err" id="s-err"></div>
+    <div class="s-field">
+      <label class="s-label">Anthropic API key</label>
+      <input class="s-input" type="password" id="api-key" placeholder="sk-ant-…" autocomplete="off"/>
+    </div>
+    <div class="s-field">
+      <label class="s-label">Portfolio tickers</label>
+      <input class="s-input" type="text" id="tickers" value="AAPL, TSM, BRK.B, VTI, VXUS, BND, GLD"/>
+    </div>
+    <button class="s-btn" onclick="launch()">Open scorecard →</button>
+    <div class="s-note">Key stays in memory only — never saved.<br/>Get yours at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></div>
+  </div>
+</div>
+
+<!-- App -->
+<div class="app" id="app" style="display:none">
+
+  <div class="topbar">
+    <div class="wordmark">GeoSignal</div>
+    <div class="topbar-right">
+      <span class="updated" id="updated">—</span>
+      <button class="refresh-btn" id="rfbtn" onclick="fetchSignal()">
+        <i class="ri">↻</i> refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Score -->
+  <div class="score-block" id="score-block">
+    <div class="score-left">
+      <div>
+        <span class="score-num" id="score-num">—</span>
+        <span class="score-denom">/100</span>
+      </div>
+      <div class="score-label">portfolio risk score</div>
+      <div class="score-context" id="score-context"></div>
+    </div>
+    <div class="score-right">
+      <div class="verdict-pill pill-hold" id="verdict-pill">—</div>
+      <div class="verdict-sub" id="verdict-sub"></div>
+    </div>
+  </div>
+
+  <!-- States -->
+  <div class="state-wrap" id="st-empty">
+    <div class="st-icon">◈</div>
+    <div class="st-title">No signal yet</div>
+    <div class="st-desc">Hit refresh to pull today's geopolitical events and score your portfolio exposure.</div>
+  </div>
+  <div class="loading-wrap" id="st-loading" style="display:none">
+    <div class="bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+    <div class="l-text">reading the world</div>
+    <div class="l-step" id="l-step">searching live news…</div>
+  </div>
+
+  <!-- Content -->
+  <div id="content" style="display:none">
+    <div class="tiles" id="tiles"></div>
+    <div class="drawer" id="drawer">
+      <div class="drawer-header">
+        <div class="drawer-title" id="d-title"></div>
+        <button class="drawer-close" onclick="closeDrawer()">×</button>
+      </div>
+      <div class="drawer-body">
+        <div class="drawer-col">
+          <div class="dc-label">What happened</div>
+          <div class="dc-val" id="d-what"></div>
+        </div>
+        <div class="drawer-col">
+          <div class="dc-label">Market implication</div>
+          <div class="dc-val" id="d-mkt"></div>
+        </div>
+      </div>
+      <div class="drawer-calm">
+        <div class="calm-label">Calm take</div>
+        <div class="calm-text" id="d-calm"></div>
+      </div>
+      <div class="drawer-tickers" id="d-tickers"></div>
+    </div>
+
+    <div class="holdings-row" id="holdings"></div>
+
+    <div class="foot-note">not financial advice · for orientation only</div>
+  </div>
+
+</div>
+
+<script>
+let KEY='', PORT=[], DATA=null, ACTIVE=null;
+
+function launch(){
+  const k=document.getElementById('api-key').value.trim();
+  const t=document.getElementById('tickers').value.trim();
+  const err=document.getElementById('s-err');
+  if(!k.startsWith('sk-')){err.textContent='Enter a valid Anthropic API key.';err.classList.add('on');return}
+  if(!t){err.textContent='Enter at least one ticker.';err.classList.add('on');return}
+  KEY=k; PORT=t.split(',').map(x=>x.trim().toUpperCase()).filter(Boolean);
+  document.getElementById('setup').style.display='none';
+  document.getElementById('app').style.display='block';
+  renderHoldings(PORT.map(t=>({ticker:t,name:'',exposure:'unknown'})));
+  fetchSignal();
+}
+
+function renderHoldings(list){
+  document.getElementById('holdings').innerHTML=list.map(h=>{
+    const exp=['high','medium','low'].includes(h.exposure)?h.exposure:'';
+    const badge=exp?`<span class="hc-badge">${exp}</span>`:'';
+    return `<div class="h-chip ${exp}" onclick="chipClick('${h.ticker}')">
+      <div class="hc-dot"></div>
+      <span class="hc-ticker">${h.ticker}</span>
+      ${h.name?`<span class="hc-name">${h.name}</span>`:''}
+      ${badge}
+    </div>`;
+  }).join('');
+}
+
+async function fetchSignal(){
+  const btn=document.getElementById('rfbtn');
+  btn.disabled=true; btn.classList.add('spin');
+  document.getElementById('st-empty').style.display='none';
+  document.getElementById('st-loading').style.display='flex';
+  document.getElementById('content').style.display='none';
+  closeDrawer(true);
+
+  const steps=['searching live news…','reading market signals…','scoring your portfolio…','writing your briefing…'];
+  let si=0; const lel=document.getElementById('l-step');
+  const iv=setInterval(()=>{si=(si+1)%steps.length;lel.textContent=steps[si];},2200);
+
+  try{
+    const today=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:3500,
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        messages:[{role:'user',content:buildPrompt(today)}]
+      })
+    });
+    const raw=await res.json();
+    if(raw.error)throw new Error(raw.error.message);
+    const txt=(raw.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const s=txt.indexOf('{'),e=txt.lastIndexOf('}');
+    if(s===-1)throw new Error('No data returned. Please retry.');
+    DATA=JSON.parse(txt.slice(s,e+1));
+    render(DATA);
+    document.getElementById('updated').textContent=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    document.getElementById('st-loading').style.display='none';
+    document.getElementById('st-empty').style.display='block';
+    document.querySelector('.st-title').textContent='Error fetching signal';
+    document.querySelector('.st-desc').textContent=e.message||'Check your API key and try again.';
+  }finally{
+    clearInterval(iv);
+    btn.disabled=false; btn.classList.remove('spin');
+  }
+}
+
+function buildPrompt(today){
+  return `Today is ${today}. You are a calm geopolitical analyst briefing a personal long-term investor.
+
+Portfolio: ${PORT.join(', ')}
+
+Use web search to find the 3 most important geopolitical or macroeconomic events RIGHT NOW that could affect financial markets. Be factual and calm — this investor holds diversified positions and does not trade.
+
+Return ONLY a valid JSON object, no markdown, no extra text:
+{
+  "portfolio_score": <integer 0-100: how exposed THIS SPECIFIC PORTFOLIO is to current events. 0=well insulated, 100=highly exposed>,
+  "tension_score": <integer 0-100: overall global geopolitical tension independent of this portfolio>,
+  "tension_label": "<Calm|Moderate|Elevated|High|Critical>",
+  "verdict": "<hold|watch|action>",
+  "verdict_summary": "<one sentence max 16 words, about THIS portfolio specifically>",
+  "events": [
+    {
+      "id": 1,
+      "headline": "<max 10 words>",
+      "region": "<short region or category>",
+      "impact": "<high|watch|low>",
+      "what_happened": "<2 sentences, factual>",
+      "market_implication": "<2 sentences, asset class effects>",
+      "calm_take": "<2 sentences, long-term investor perspective, reassuring where honest>",
+      "affected_tickers": [<portfolio tickers with direct exposure, array of strings>],
+      "watch_tickers": [<portfolio tickers to monitor, array of strings>]
+    }
+  ],
+  "holdings": [
+    {"ticker":"<ticker>","name":"<short name>","exposure":"<high|medium|low>"}
+  ]
+}`;
+}
+
+function render(d){
+  document.getElementById('st-loading').style.display='none';
+  document.getElementById('content').style.display='block';
+
+  // Score — portfolio_score is the headline, world tension is context
+  const pscore=d.portfolio_score||0;
+  const snum=document.getElementById('score-num');
+  snum.textContent=pscore;
+  snum.style.color=pscore>70?'var(--red)':pscore>45?'var(--amber)':'var(--green)';
+  const tLabel=(d.tension_label||'').toLowerCase();
+  const tScore=d.tension_score||0;
+  document.getElementById('score-context').textContent='world tension: '+tScore+'/100 · '+tLabel;
+
+  // Verdict pill
+  const pill=document.getElementById('verdict-pill');
+  const v=d.verdict||'hold';
+  pill.textContent={hold:'hold steady',watch:'watch closely',action:'consider action'}[v]||v;
+  pill.className='verdict-pill '+{hold:'pill-hold',watch:'pill-watch',action:'pill-action'}[v];
+  document.getElementById('verdict-sub').textContent=d.verdict_summary||'';
+
+  // Tiles
+  const tagClass={high:'tag-high',watch:'tag-watch',medium:'tag-watch',low:'tag-low'};
+  const tagLabel={high:'high impact',watch:'watch',medium:'watch',low:'low impact'};
+  document.getElementById('tiles').innerHTML=(d.events||[]).map((ev,i)=>{
+    const tc=tagClass[ev.impact]||'tag-low';
+    const tl=tagLabel[ev.impact]||ev.impact;
+    return `<div class="tile" id="tile-${i}" onclick="toggleTile(${i})">
+      <div class="tile-n">0${i+1} · ${(ev.region||'').toLowerCase()}</div>
+      <div class="tile-hed">${ev.headline||''}</div>
+      <span class="tile-tag ${tc}"><span class="tile-dot"></span>${tl}</span>
+    </div>`;
+  }).join('');
+
+  // Holdings
+  if(d.holdings&&d.holdings.length) renderHoldings(d.holdings);
+}
+
+function toggleTile(i){
+  if(ACTIVE===i){closeDrawer();return}
+  document.querySelectorAll('.tile').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tile-'+i).classList.add('active');
+  ACTIVE=i;
+  const ev=DATA.events[i];
+  document.getElementById('d-title').textContent=ev.headline||'';
+  document.getElementById('d-what').textContent=ev.what_happened||'';
+  document.getElementById('d-mkt').textContent=ev.market_implication||'';
+  document.getElementById('d-calm').textContent=ev.calm_take||'';
+  const dt=document.getElementById('d-tickers');
+  const dir=(ev.affected_tickers||[]), wat=(ev.watch_tickers||[]);
+  if(dir.length||wat.length){
+    dt.innerHTML='<span class="dt-label">holdings:</span>'+
+      dir.map(t=>`<span class="dt-chip direct">${t}</span>`).join('')+
+      wat.map(t=>`<span class="dt-chip watch">${t}</span>`).join('');
+  } else {
+    dt.innerHTML='<span class="dt-none">no direct holdings affected</span>';
+  }
+  const drawer=document.getElementById('drawer');
+  drawer.classList.add('open');
+  drawer.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function closeDrawer(silent){
+  document.getElementById('drawer').classList.remove('open');
+  document.querySelectorAll('.tile').forEach(t=>t.classList.remove('active'));
+  ACTIVE=null;
+}
+
+function chipClick(ticker){
+  if(!DATA)return;
+  const i=(DATA.events||[]).findIndex(ev=>
+    (ev.affected_tickers||[]).includes(ticker)||(ev.watch_tickers||[]).includes(ticker));
+  if(i>=0)toggleTile(i);
+}
+</script>
+</body>
+</html>
